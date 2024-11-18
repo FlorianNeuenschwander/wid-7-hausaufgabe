@@ -1,7 +1,8 @@
-import Map from "./maps/QuakesMap";
+import React from "react";
+import QuakesMap from "./maps/QuakesMap";
 
 function App() {
-  return <Map />;
+  return <QuakesMap />;
 }
 
 export default App;

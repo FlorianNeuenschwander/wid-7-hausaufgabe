@@ -1,9 +1,10 @@
+import React, { useState, useEffect } from "react";
+import { CssBaseline, Typography, Link } from "@mui/material";
 import { renderToString } from "react-dom/server";
-import { CssBaseline, Link, Typography } from "@mui/material";
-import { useEffect, useState } from "react";
-import L from "leaflet";
 import { MapContainer, TileLayer, GeoJSON, LayersControl } from "react-leaflet";
+import L from "leaflet";
 import Header from "./Header";
+import Filter from "./Filter";
 import { BASE_LAYERS } from "./baseLayers";
 
 const OUTER_BOUNDS = [
@@ -17,19 +18,23 @@ function getMarkerRadius(magnitude) {
   const baseArea = 10;
   const scaleFactor = 2.5;
   const area = baseArea * Math.pow(10, (magnitude - 1) / scaleFactor);
-
   return Math.sqrt(area / Math.PI);
 }
 
 const pointToLayer = ({ properties }, latlng) => {
   const radius = getMarkerRadius(properties.mag);
-  return L.circleMarker(latlng, { radius: radius });
+  return L.circleMarker(latlng, {
+    radius: radius,
+    color: "#8A2BE2",
+    fillColor: "#8A2BE2",
+    fillOpacity: 0.6,
+    weight: 1,
+  });
 };
 
 const onEachFeature = (feature, layer) => {
   if (feature.properties && feature.properties.place) {
     const popup = <Popup {...feature} />;
-
     layer.bindPopup(renderToString(popup));
   }
 };
@@ -39,26 +44,24 @@ function Popup({ properties, geometry }) {
 
   return (
     <>
-      <Typography variant="h2">{properties.place}</Typography>
+      <Typography variant="h6">{properties.place}</Typography>
       <p>
-        <span style={{ fontWeight: "bold" }}>MAGNITUDE</span>: {properties.mag}
+        <strong>MAGNITUDE</strong>: {properties.mag}
         <br />
-        <span style={{ fontWeight: "bold" }}>DEPTH</span>: {depth} km
+        <strong>DEPTH</strong>: {depth} km
         <br />
-        <span style={{ fontWeight: "bold" }}>TYPE</span>: {properties.type}
+        <strong>TYPE</strong>: {properties.type}
         <br />
-        <span style={{ fontWeight: "bold" }}>Lon/Lat</span>: {lon}, {lat}
+        <strong>Lon/Lat</strong>: {lon}, {lat}
       </p>
-      <Typography variant="h3">
-        <Link variant="h3" target="_blank" href={properties.url}>
-          More info
-        </Link>
-      </Typography>
+      <Link target="_blank" href={properties.url}>
+        More info
+      </Link>
     </>
   );
 }
 
-function Map() {
+function QuakesMap() {
   const [quakesJson, setQuakesJson] = useState([]);
   const [minMag, setMinMag] = useState("2.5");
   const [timespan, setTimespan] = useState("week");
@@ -77,18 +80,17 @@ function Map() {
   }
 
   useEffect(() => {
-    const url = `${BASE_URL}/${minMag}_${timespan}.geojson`;
+    const url = `${BASE_URL}${minMag}_${timespan}.geojson`;
     fetchQuakeData(url);
-  }, []);
-
-  // console.log(quakesJson);
+  }, [minMag, timespan]);
 
   return (
     <>
       <CssBaseline />
       <Header />
+      <Filter setMinMag={setMinMag} setTimespan={setTimespan} />
       <MapContainer
-        style={{ height: "100vh" }}
+        style={{ height: "calc(100vh - 64px - 50px)" }}
         center={[0, 0]}
         zoom={3}
         minZoom={2}
@@ -96,17 +98,19 @@ function Map() {
         maxBoundsViscosity={1}
       >
         <LayersControl position="topright">
-          {BASE_LAYERS.map(baseLayer => (
+          {BASE_LAYERS.map((baseLayer) => (
             <LayersControl.BaseLayer
               key={baseLayer.url}
               checked={baseLayer.checked}
               name={baseLayer.name}
             >
-              <TileLayer attribution={baseLayer.attribution} url={baseLayer.url} />
+              <TileLayer
+                attribution={baseLayer.attribution}
+                url={baseLayer.url}
+              />
             </LayersControl.BaseLayer>
           ))}
-
-          <LayersControl.Overlay checked name="USGQ Earthquakes">
+          <LayersControl.Overlay checked name="USGS Earthquakes">
             <GeoJSON
               data={quakesJson}
               pointToLayer={pointToLayer}
@@ -120,4 +124,4 @@ function Map() {
   );
 }
 
-export default Map;
+export default QuakesMap;

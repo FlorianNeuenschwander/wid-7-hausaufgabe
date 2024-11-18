@@ -8,9 +8,14 @@ import MenuIcon from "@mui/icons-material/Menu";
 export default function Header() {
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <AppBar elevation={0} position="static" sx={{ bgcolor: "#000000" }}>
+      <AppBar elevation={0} position="static" sx={{ bgcolor: "#green" }}>
         <Toolbar variant="regular">
-          <IconButton edge="start" color="inherit" aria-label="menu" sx={{ mr: 2 }}>
+          <IconButton
+            edge="start"
+            color="inherit"
+            aria-label="menu"
+            sx={{ mr: 2 }}
+          >
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" color="inherit" component="div">
